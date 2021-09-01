@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import personService from './services/persons'
+import Notification from './components/Notification'
 import Filter from './components/Filter'
 import PersonForm from './components/PersonForm'
 import Persons from './components/Persons'
@@ -9,6 +10,8 @@ const App = () => {
   const [ newFilter, setNewFilter ] = useState('')
   const [ newName, setNewName ] = useState('')
   const [ newNumber, setNewNumber ] = useState('')
+  const [ returnMessage, setReturnMessage] = useState('')
+  const [ returnMessageClass, setReturnMessageClass] = useState("")
 
   useEffect(() => {
     personService
@@ -16,9 +19,16 @@ const App = () => {
     .then(person => setPersons(person))
   }, [])
 
+  const refreshData = () => {
+    personService
+      .getAll()
+      .then(person => setPersons(person))
+  }
+
   const handleSubmit = (event) => {
     event.preventDefault();
     if (persons.findIndex( (person) => person.name === newName ) === -1) {
+      if(newName !== "" && newNumber  !== "") {
       const personObject = {name: newName, number: newNumber}
       
       personService
@@ -26,7 +36,12 @@ const App = () => {
         .then(response => {
           setPersons(persons.concat(response))  
         })
-    } else {
+      setReturnMessageClass("sucess")
+      setReturnMessage(` ${newName} added to the phonebook`)
+      setTimeout(() => {
+        setReturnMessage(null)
+      }, 5000)
+    }} else {
       updatePhone();
     }
   }
@@ -41,7 +56,11 @@ const App = () => {
       personService
         .updatePhone(id, updatedPerson)
         .then((person) => setPersons(persons.map(n => n.id !== id ? n : person)))
-        .catch((error) => {alert(`the person ${person.content}' phone was already changed`)})
+        setReturnMessageClass("sucess")
+        setReturnMessage(`${newName} phone updated!`)
+        setTimeout(() => {
+        setReturnMessage(null)
+      }, 5000)
       }
     }
 
@@ -53,9 +72,14 @@ const App = () => {
     personService
       .deleteUser(id, person)
       .then((person) => setPersons(persons.filter(n => n.id !== id)))
-      .catch((error) => {alert(
-        `the person '${person.content}' was already deleted from server`
-      )}) 
+      .catch((error) => {
+        refreshData()
+        setReturnMessage(`${person.name} was already removed from server`)
+        setReturnMessageClass("error")
+          setTimeout(() => {
+            setReturnMessage(null)
+          }, 5000)
+      }) 
     }
   }
 
@@ -68,6 +92,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={returnMessage} messageClass={returnMessageClass}/>
 
       <Filter value={newFilter} f={handleFilter}/>
 
