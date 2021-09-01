@@ -1,8 +1,10 @@
-const Persons = ({filteredPersons}) => {
-  const filtered =  filteredPersons.map( (item) => <div> {item.name} {item.number} </div> )
+const Persons = ({filteredPersons, deleteUser}) => {
+  const filtered =  filteredPersons.map( (item) => <li key={item.id}> {item.name} {item.number} <button onClick={() => deleteUser(item.id)}> Delete </button>  </li> )
   return (
   <>
-  {filtered}
+  <ul>
+    {filtered}
+  </ul>
   </> 
   )
 }
