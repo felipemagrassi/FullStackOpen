@@ -1,4 +1,4 @@
-const { request } = require("express");
+const morgan = require('morgan')
 const express = require("express");
 const PORT = 3001;
 const app = express()
@@ -26,8 +26,16 @@ let data = [
   }
 ]
 
+
+
+
+
 // Middleware to take JSON body
 app.use(express.json())
+
+// morgan 
+morgan.token('body', function (req, res) { return JSON.stringify(req.body) })
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :body'))
 
 // Get All
 
@@ -50,8 +58,13 @@ app.get("/api/persons/:id", (request, response) => {
   const id = request.params.id;
   const person = data.find(person => person.id === +id);
 
-  response.json(person);
-  response.status(204).end();
+  if (person) {
+    response.json(person);
+    response.status(200).end();
+  } 
+  else {
+    response.status(404).end();
+  }
 
 })
 
