@@ -1,3 +1,4 @@
+const { request } = require("express");
 const express = require("express");
 const PORT = 3001;
 const app = express()
@@ -25,10 +26,8 @@ let data = [
   }
 ]
 
-
 // Middleware to take JSON body
 app.use(express.json())
-
 
 // Get All
 
@@ -49,8 +48,9 @@ app.get('/info', (request, response) => {
 
 app.get("/api/persons/:id", (request, response) => {
   const id = request.params.id;
-  const person = data.filter(person => person.id !== +id);
+  const person = data.find(person => person.id === +id);
 
+  response.json(person);
   response.status(204).end();
 
 })
