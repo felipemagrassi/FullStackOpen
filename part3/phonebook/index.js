@@ -1,6 +1,5 @@
 const morgan = require('morgan')
 const express = require("express");
-const PORT = 3001;
 const app = express()
 
 let data = [
@@ -25,10 +24,6 @@ let data = [
     "number": "39-23-6423122"
   }
 ]
-
-
-
-
 
 // Middleware to take JSON body
 app.use(express.json())
@@ -120,6 +115,7 @@ app.post("/api/persons", (request, response) => {
 // Error Handling
 // Name/Number exists/missing
 
+const PORT = process.env.PORT || 3001;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
