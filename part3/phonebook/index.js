@@ -26,8 +26,11 @@ let data = [
   }
 ]
 
-// CORS for requests
+// Static Build
 
+app.use(express.static('build')
+
+// CORS for requests
 app.use(cors());
 
 // Middleware to take JSON body
