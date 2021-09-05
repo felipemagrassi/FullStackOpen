@@ -1,5 +1,6 @@
 const morgan = require('morgan')
 const express = require("express");
+const cors = require('cors')
 const app = express()
 
 let data = [
@@ -24,6 +25,10 @@ let data = [
     "number": "39-23-6423122"
   }
 ]
+
+// CORS for requests
+
+app.use(cors());
 
 // Middleware to take JSON body
 app.use(express.json())
@@ -111,6 +116,8 @@ app.post("/api/persons", (request, response) => {
 
   response.status(200).end()
 })
+
+// change number
 
 // Error Handling
 // Name/Number exists/missing

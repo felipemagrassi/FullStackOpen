@@ -19,12 +19,6 @@ const App = () => {
     .then(person => setPersons(person))
   }, [])
 
-  const refreshData = () => {
-    personService
-      .getAll()
-      .then(person => setPersons(person))
-  }
-
   const handleSubmit = (event) => {
     event.preventDefault();
     if (persons.findIndex( (person) => person.name === newName ) === -1) {
@@ -34,7 +28,7 @@ const App = () => {
       personService
         .create(personObject)
         .then(response => {
-          setPersons(persons.concat(response))  
+          setPersons(response)  
         })
       setReturnMessageClass("sucess")
       setReturnMessage(` ${newName} added to the phonebook`)
@@ -73,7 +67,6 @@ const App = () => {
       .deleteUser(id, person)
       .then((person) => setPersons(persons.filter(n => n.id !== id)))
       .catch((error) => {
-        refreshData()
         setReturnMessage(`${person.name} was already removed from server`)
         setReturnMessageClass("error")
           setTimeout(() => {
