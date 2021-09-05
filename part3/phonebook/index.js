@@ -28,7 +28,7 @@ let data = [
 
 // Static Build
 
-app.use(express.static('build')
+app.use(express.static('build'))
 
 // CORS for requests
 app.use(cors());
