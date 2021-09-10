@@ -28,7 +28,7 @@ const App = () => {
       personService
         .create(personObject)
         .then(response => {
-          setPersons(response)  
+          setPersons([...persons, response])  
         })
       setReturnMessageClass("sucess")
       setReturnMessage(` ${newName} added to the phonebook`)
@@ -75,7 +75,6 @@ const App = () => {
       }) 
     }
   }
-
   const filteredItems = persons.filter( (person) => newFilter === "" ? person : person.name.toUpperCase().includes(newFilter.toUpperCase()));
 
   const handleFilter = (event) => { setNewFilter(event.target.value)}
