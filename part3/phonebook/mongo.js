@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
 if (process.argv.length < 3) {
+  // eslint-disable-next-line
   console.log('Please provide the password as an argument: node mongo.js <password> <user> <number> ');
   process.exit(1);
 }
@@ -26,13 +27,15 @@ if (process.argv.length >= 5) {
     number: phone,
   });
 
-  person.save().then((result) => {
+  person.save().then(() => {
+    // eslint-disable-next-line
     console.log(`added ${username} number ${phone} to phonebook`);
     mongoose.connection.close();
   });
 } else {
   Person.find({}).then((result) => {
     result.forEach((person) => {
+      // eslint-disable-next-line
       console.log(person);
     });
     mongoose.connection.close();
