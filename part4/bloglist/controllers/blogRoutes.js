@@ -55,4 +55,10 @@ blogRouter.put('/:id', (request, response, next) => {
     .catch((error) => next(error));
 });
 
+blogRouter.delete('/:id', (request, response, next) => {
+  Blog.findByIdAndDelete(request.params.id)
+    .then(() => response.status(204).end())
+    .catch((error) => next(error));
+});
+
 module.exports = blogRouter;
