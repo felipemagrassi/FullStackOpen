@@ -32,7 +32,7 @@ blogRouter.post('/', (request, response, next) => {
   blog
     .save()
     .then((savedPost) => {
-      response.json(savedPost);
+      response.status(201).json(savedPost);
     })
     .catch((error) => next(error));
 });
