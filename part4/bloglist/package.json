@@ -6,16 +6,25 @@
   "scripts": {
     "format": "prettier --write \"src/**/*.{js,jsx}\"",
     "dev": "nodemon index.js",
+    "test": "jest --verbose",
+    "build:ui": "rm -rf build && cd ../../part2/phonebook && npm run build && cp -r build ../../part4/blog/luento/notes-backend",
+    "deploy": "git push heroku master",
+    "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",
+    "logs:prod": "heroku logs --tail",
     "lint": "eslint \"src/**/*.{js,jsx}\" --quiet"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "jest": {
+    "testEnvironment": "node"
+  },
   "devDependencies": {
     "eslint": "^7.32.0",
     "eslint-config-airbnb-base": "^14.2.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-import": "^2.24.2",
+    "jest": "^27.1.1",
     "nodemon": "^2.0.12",
     "prettier": "^2.4.0"
   },
