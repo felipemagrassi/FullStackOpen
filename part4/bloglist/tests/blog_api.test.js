@@ -1,0 +1,118 @@
+const mongoose = require('mongoose');
+const supertest = require('supertest');
+const app = require('../app');
+const api = supertest(app);
+const helper = require('./test_helper');
+const Blog = require('../models/blog');
+
+beforeEach(async () => {
+  await Blog.deleteMany({});
+  for (let i = 0; i < helper.initialDatabase.length; i++) {
+    let blogObject = new Blog(helper.initialDatabase[i]);
+    await blogObject.save();
+  }
+});
+
+test('blog post are returned as json', async () => {
+  await api
+    .get('/api/blog')
+    .expect(200)
+    .expect('Content-Type', /application\/json/);
+});
+
+test('blog post are all returned', async () => {
+  const response = await api.get('/api/blog');
+
+  expect(response.body).toHaveLength(helper.initialDatabase.length);
+});
+
+test('verify the unique id of the blog post', async () => {
+  const post = await helper.blogsInDb();
+  const response = await api.get(`/api/blog/${post[0].id}`);
+
+  expect(response).toBeDefined();
+});
+
+test('can add a new blog post', async () => {
+  const newPost = {
+    title: 'new blog post',
+    author: 'Felipe Magrassi',
+    url: 'http://www.google.com.br',
+    likes: 90,
+  };
+
+  await api
+    .post('/api/blog')
+    .send(newPost)
+    .expect(200)
+    .expect('Content-Type', /application\/json/);
+
+  const response = await api.get('/api/blog');
+  const content = response.body.map((r) => r.title);
+
+  expect(response.body).toHaveLength(helper.initialDatabase.length + 1);
+  expect(content).toContain('new blog post');
+});
+
+test('add post without likes', async () => {
+  const newPost = {
+    title: 'new blog post',
+    author: 'Felipe Magrassi',
+    url: 'http://www.google.com.br',
+  };
+
+  await api
+    .post('/api/blog')
+    .send(newPost)
+    .expect(200)
+    .expect('Content-Type', /application\/json/);
+
+  const response = await api.get('/api/blog');
+  const post = response.body[helper.initialDatabase.length];
+
+  expect(post.likes).toBe(0);
+}, 10000);
+
+test('post without title and author is not added', async () => {
+  const newPost = {
+    url: 'http://www.google.com.br',
+    likes: 90,
+  };
+
+  await api.post('/api/blog').send(newPost).expect(400);
+  const response = await helper.blogsInDb();
+
+  expect(response).toHaveLength(helper.initialDatabase.length);
+});
+
+test('modify number of likes', async () => {
+  const blog = await helper.blogsInDb();
+
+  await api
+    .put(`/api/blog/${blog[0].id}`)
+    .send({ likes: 20000 })
+    .expect(200)
+    .expect('Content-Type', /application\/json/);
+
+  const response = await helper.blogsInDb();
+
+  expect(response[0].likes).toBe(20000);
+});
+
+test('deletion of a post', async () => {
+  const blog = await helper.blogsInDb();
+  const blogToDelete = blog[0];
+
+  await api.delete(`/api/blog/${blogToDelete.id}`).expect(204);
+
+  const blogAfterDeletion = await helper.blogsInDb();
+
+  expect(blogAfterDeletion).toHaveLength(helper.initialDatabase.length - 1);
+  expect(blogAfterDeletion.map((r) => r.author)).not.toContain(
+    blogToDelete.author
+  );
+});
+
+afterAll(() => {
+  mongoose.connection.close();
+});
