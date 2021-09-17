@@ -15,6 +15,23 @@ describe('only one user in db', () => {
     await user.save();
   });
 
+  test('creation fails with proper statuscode and message if username already taken', async () => {
+    const usersAtStart = await helper.usersInDb();
+
+    const newUser = {
+      username: 'root',
+      name: 'Felipe Magrassi',
+      password: 'ghiblifanboy',
+    };
+
+    const result = await api.post('/api/users').send(newUser).expect(500);
+    expect(result.text).toContain('duplicate key error');
+
+    const usersAtEnd = await helper.usersInDb();
+
+    expect(usersAtEnd).toHaveLength(usersAtStart.length);
+  });
+
   test('creation succeeds with a fresh username', async () => {
     const usersAtStart = await helper.usersInDb();
 
@@ -37,20 +54,12 @@ describe('only one user in db', () => {
     expect(usernames).toContain(newUser.username);
   });
 
-  test('creation fails with proper statuscode and message if username already taken', async () => {
+  test('get all users', async () => {
     const usersAtStart = await helper.usersInDb();
-
-    const newUser = {
-      username: 'root',
-      name: 'Felipe Magrassi',
-      password: 'ghiblifanboy',
-    };
-
-    const result = await api.post('/api/users').send(newUser).expect(500);
-    expect(result.text).toContain('duplicate key error');
-
-    const usersAtEnd = await helper.usersInDb();
-
-    expect(usersAtEnd).toHaveLength(usersAtStart.length);
+    const result = await api
+      .get('/api/users')
+      .expect(200)
+      .expect('Content-Type', /application\/json/);
+    expect(result.body).toHaveLength(usersAtStart.length);
   });
 });
