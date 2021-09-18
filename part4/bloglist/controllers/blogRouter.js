@@ -31,7 +31,7 @@ blogRouter.post(
     const blog = new Blog({
       title: body.title,
       author: body.author,
-      url: body.author,
+      url: body.url,
       user: user._id,
       likes: body.likes === undefined ? 0 : body.likes,
     });
