@@ -36,6 +36,10 @@ blogRouter.post(
       likes: body.likes === undefined ? 0 : body.likes,
     });
 
+    if (!body.title || !body.author || !body.url) {
+      return response.status(401).json({ error: 'missing parameters' });
+    }
+
     if (!request.token || !request.user) {
       return response.status(401).json({ error: 'token missing or invalid' });
     }
@@ -44,7 +48,7 @@ blogRouter.post(
     user.blogPosts = user.blogPosts.concat(savedPost.id);
     await user.save();
 
-    response.json(savedPost);
+    response.status(201).json(savedPost);
   }
 );
 
@@ -53,36 +57,12 @@ blogRouter.put(
   tokenExtractor,
   userExtractor,
   async (request, response) => {
-    const { body } = request;
-
-    const blog = {
-      title: body.title,
-      author: body.author,
-      url: body.url,
-      likes: body.likes,
-    };
-
-    const user = request.user;
-    if (!request.token || !user) {
-      return response.status(401).json({ error: 'token missing or invalid' });
-    }
-
-    const post = await Blog.find({ _id: request.params.id });
-    if (post[0] === undefined) {
-      return response
-        .status(404)
-        .json({ error: "blog post already deleted or doesn't exist" });
-    }
-
-    if (post[0].user === undefined || post[0].user.equals(user)) {
-      const savedPost = await Blog.findByIdAndUpdate(request.params.id, blog, {
-        runValidators: true,
-        new: true,
-      });
-      response.json(savedPost);
-    } else {
-      return response.status(401).json({ error: 'invalid user token' });
-    }
+    const blog = request.body;
+    const savedPost = await Blog.findByIdAndUpdate(request.params.id, blog, {
+      runValidators: true,
+      new: true,
+    });
+    response.json(savedPost);
   }
 );
 
@@ -91,20 +71,25 @@ blogRouter.delete(
   tokenExtractor,
   userExtractor,
   async (request, response) => {
-    const user = request.user;
-    if (!request.token || !user) {
+    if (!request.token || !request.user) {
       return response.status(401).json({ error: 'token missing or invalid' });
     }
 
     const post = await Blog.find({ _id: request.params.id });
+    const user = await User.findById(request.user);
+
     if (post[0] === undefined) {
       return response
         .status(404)
         .json({ error: "blog post already deleted or doesn't exist" });
     }
 
-    if (post[0].user === undefined || post[0].user.equals(user)) {
-      await Blog.findByIdAndDelete(request.params.id);
+    if (post[0].user === undefined || post[0].user.equals(request.user)) {
+      await Blog.findOneAndDelete({ _id: request.params.id });
+      user.blogPosts = user.blogPosts.filter(
+        (a) => a.id.toString() !== request.params.id.toString()
+      );
+      user.save();
       response.status(204).end();
     } else {
       return response.status(401).json({ error: 'invalid user token' });
