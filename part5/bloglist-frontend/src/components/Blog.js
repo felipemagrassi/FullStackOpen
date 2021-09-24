@@ -31,7 +31,7 @@ const Blog = ({ blog, handleIncreaseLike, handleDeletePost }) => {
     <div>
       <div className='visibleContent' style={Object.assign({}, blogStyle, hideWhenVisible)}>
         <span>title: {blog.title}</span>
-        <button onClick={toggleVisibility}>Open</button>
+        <button className='openButton' onClick={toggleVisibility}>Open</button>
         <p>author: {blog.author}</p>
       </div>
       <div className='invisibleContent' style={Object.assign({}, blogStyle, showWhenVisible)}>
@@ -40,8 +40,8 @@ const Blog = ({ blog, handleIncreaseLike, handleDeletePost }) => {
         <p>author: {blog.author}</p>
         <p>url: {blog.url}</p>
         <span>likes: {blog.likes}</span>
-        <button onClick={updateLike}>like</button>
-        {/* <p>Owner: {blog.user.name === undefined ? 'No owner' : blog.user.name }</p> */}
+        <button className='likeButton' onClick={updateLike}>Like Post</button>
+        <p>Owner: {blog.user.name === undefined ? 'No owner' : blog.user.name }</p>
         <button onClick={deletePost}>Delete Post</button>
       </div>
     </div>

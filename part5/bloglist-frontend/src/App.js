@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
+import Togglable from './components/Togglable'
+import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
-import Togglable from './components/Togglable'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -126,12 +127,12 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
-      {errorMessage}
+      <Notification error={errorMessage}/>
 
       {user === null ? (
         <div>
           <h2>Log in to application</h2>
-          {errorMessage}
+          <Notification error={errorMessage}/>
           {loginform()}
         </div>
       ) : (

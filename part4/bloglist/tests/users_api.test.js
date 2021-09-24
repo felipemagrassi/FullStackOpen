@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const supertest = require('supertest');
 const bcrypt = require('bcrypt');
 const app = require('../app');
@@ -62,4 +63,8 @@ describe('only one user in db', () => {
       .expect('Content-Type', /application\/json/);
     expect(result.body).toHaveLength(usersAtStart.length);
   });
+});
+
+afterAll(() => {
+  mongoose.connection.close();
 });

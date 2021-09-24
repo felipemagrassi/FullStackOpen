@@ -15,13 +15,18 @@ beforeEach(async () => {
     await blogObject.save();
   }
   const password = await bcrypt.hash('sekret', 10);
-  let correctUser = new User({ username: 'Magrassi', passwordHash: password });
+  let correctUser = new User({
+    _id: '614d46701724364dd52348ef',
+    username: 'Magrassi',
+    name: 'Felipe Magrassi',
+    passwordHash: password,
+  });
   let incorrectUser = new User({
     username: 'unauthorizedUser',
     passwordHash: password,
   });
-  correctUser.save();
-  incorrectUser.save();
+  await correctUser.save();
+  await incorrectUser.save();
 }, 100000);
 
 test('blog post are returned as json', async () => {

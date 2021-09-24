@@ -1,15 +1,9 @@
 const info = (...params) => {
-  // eslint-disable-next-line
-  if (process.env.NODE_ENV !== 'test') {
-    console.log(...params);
-  }
+  console.error(...params);
 };
 
 const error = (...params) => {
-  // eslint-disable-next-line
-  if (process.env.NODE_ENV !== 'test') {
-    console.error(...params);
-  }
+  console.error(...params);
 };
 
 module.exports = {
