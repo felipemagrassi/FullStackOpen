@@ -17,18 +17,26 @@ export const hideNotification = () => {
   }
 }
 
-export const notifyVote = (content) => {
-  return {
-    type: "VOTE_NOTIFICATION",
-    data: { content }
-  }
-}
+export const notifyVote = (content, timer) => {
+  return dispatch => {
+    dispatch({
+      type: 'VOTE_NOTIFICATION',
+      data: { content } 
+    })
+    setTimeout(() => {
+      dispatch({type: "HIDE_NOTIFICATION"})
+    }, timer)
+  }}
 
-export const notifyCreate = (content) => {
-  return {
+export const notifyCreate = (content, timer) => {
+  return dispatch => {
+  dispatch({
     type: 'CREATE_NOTIFICATION',
     data: { content } 
-  }
-}
+  })
+  setTimeout(() => {
+    dispatch({type: "HIDE_NOTIFICATION"})
+  }, timer)
+}}
 
 export default notificationReducer

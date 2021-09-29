@@ -9,11 +9,8 @@ const AnecdoteList = () => {
   const anecdotes = useSelector(({anecdotes, inputFilter}) => anecdotes.filter((anecdote => anecdote.content.includes(inputFilter))))
 
   const vote = (e, anecdote) => {
-    dispatch(voteAnecdote(anecdote.id))
-    dispatch(notifyVote(anecdote.content))
-    setTimeout(() => {
-      dispatch(hideNotification())
-    }, 5000)
+    dispatch(voteAnecdote(anecdote))
+    dispatch(notifyVote(anecdote.content,5000))
   }
 
   return (
