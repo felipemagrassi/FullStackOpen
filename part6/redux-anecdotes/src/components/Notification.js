@@ -1,20 +1,22 @@
 
 import React from 'react'
-import { useSelector } from 'react-redux'
+import { connect } from 'react-redux'
 
-const Notification = () => {
-  const notification = useSelector(({notification}) => {
-    switch (notification.type) {
+const Notification = (props) => {
+    let notification
+    switch (props.notification.type) {
       case 'vote':
-        return `You voted for ${notification.data}`
+        notification = `You voted for ${props.notification.data.content}`
+        break;
       case 'create':
-        return `created new anecdote with title ${notification.data}`
+        notification = `created new anecdote with title ${props.notification.data.content}`
+        break;
       case 'hide':
-        return null
+        notification = null
+        break;
       default:
         break;
     }
-  })
   
   const style = {
     border: 'solid',
@@ -32,4 +34,12 @@ const Notification = () => {
 
 }
 
-export default Notification
+const mapStateToProps = (state) => {
+  return {
+    notification: state.notification,
+  }
+}
+
+const ConnectedNotification = connect(mapStateToProps)(Notification)
+
+export default ConnectedNotification

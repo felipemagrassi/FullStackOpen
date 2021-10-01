@@ -3,7 +3,6 @@ import anecdotesService from '../services/anecdotes'
 export const newAnecdote = (content) => {
   return async dispatch => {
     const newAnecdote = await anecdotesService.createNew(content)
-    console.log(newAnecdote)
     dispatch({
       type: 'CREATE_ANECDOTE',
       data: newAnecdote
