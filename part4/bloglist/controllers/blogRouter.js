@@ -57,11 +57,15 @@ blogRouter.put(
   tokenExtractor,
   userExtractor,
   async (request, response) => {
-    const blog = request.body;
-    const savedPost = await Blog.findByIdAndUpdate(request.params.id, blog, {
-      runValidators: true,
-      new: true,
-    });
+    const blog = await Blog.findById(request.params.id);
+    const savedPost = await Blog.findByIdAndUpdate(
+      request.params.id,
+      { ...blog, likes: blog.likes++ },
+      {
+        runValidators: true,
+        new: true,
+      }
+    );
     response.json(savedPost);
   }
 );

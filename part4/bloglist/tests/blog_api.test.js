@@ -255,6 +255,8 @@ test('unauthorized user cant delete other user post', async () => {
   expect(blogAfterDeletion.map((r) => r.author)).toContain('Felipe Magrassi');
 });
 
-afterAll(() => {
+afterAll(async () => {
+  await Blog.deleteMany({});
+  await User.deleteMany({});
   mongoose.connection.close();
 });
