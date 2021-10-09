@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
+
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
 import BlogForm from './components/BlogForm'
@@ -6,15 +8,20 @@ import Togglable from './components/Togglable'
 import Notification from './components/Notification'
 import blogService from './services/blogs'
 import loginService from './services/login'
+import { showNotification } from './reducers/notificationReducer'
+import { initBlog, createBlog, likeBlog, deleteBlog } from './reducers/blogReducer'
+
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
-  const [user, setUser] = useState(null)
-  const [errorMessage, setErrorMessage] = useState('')
+
+  const dispatch = useDispatch()
   const blogFormRef = useRef()
+  const [user, setUser] = useState(null)
+  const blogs = useSelector(({ blog }) => blog)
+  const errorMessage = useSelector(({ notification }) => notification.message)
 
   useEffect(() => {
-    blogService.getAll().then((blog) => setBlogs(blog))
+    dispatch(initBlog())
   }, [])
 
   useEffect(() => {
@@ -50,65 +57,41 @@ const App = () => {
         JSON.stringify(authentication)
       )
     } catch (err) {
-      setErrorMessage('Wrong Credentials')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      dispatch(showNotification('Wrong Credentials'))
     }
   }
 
   const handleCreateBlog = async ({ title, author, url }) => {
     blogFormRef.current.toggleVisibility()
     try {
-      const blog = await blogService.create({
-        title: title,
-        author: author,
-        url: url,
-      })
-      blogService.getAll().then((blog) => setBlogs(blog))
-      setErrorMessage(`${blog.title} created with success`)
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      const blog = {
+        title,
+        author,
+        url
+      }
+      dispatch(createBlog(blog))
+      dispatch(showNotification(`${blog.title} created with success`))
+
     } catch (err) {
-      setErrorMessage('Invalid parameters for creating a blog')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      dispatch(showNotification('Invalid parameters for creating a blog'))
     }
   }
 
   const handleIncreaseLike = async (id, blogObj) => {
     try {
-      await blogService.update(id, blogObj)
-      blogService.getAll().then((blog) => setBlogs(blog))
-      setErrorMessage(`${blogObj.title} likes updated to ${blogObj.likes}`)
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      dispatch(likeBlog(id))
+      dispatch(showNotification(`${blogObj.title} likes updated to ${blogObj.likes + 1}`))
     } catch (err) {
-      setErrorMessage('Can\'t update this post')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      dispatch(showNotification('Can\'t update this post'))
     }
   }
 
   const handleDeletePost = async (id, blogTitle) => {
     try {
-      await blogService.deletePost(id)
-      const blog = await blogService.getAll()
-      setBlogs(blog)
-      setErrorMessage(`${blogTitle} deleted by ${user.name}`)
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      dispatch(deleteBlog(id))
+      dispatch(showNotification(`${blogTitle} deleted by ${user.name}`))
     } catch (err) {
-      console.log(err)
-      setErrorMessage('You can\'t delete this post')
-      setTimeout(() => {
-        setErrorMessage(null)
-      }, 5000)
+      dispatch(showNotification('You can\'t delete this post'))
     }
   }
 
@@ -124,6 +107,7 @@ const App = () => {
     </Togglable>
   )
 
+
   return (
     <div>
       <h2>blogs</h2>
@@ -132,7 +116,6 @@ const App = () => {
       {user === null ? (
         <div>
           <h2>Log in to application</h2>
-          <Notification error={errorMessage}/>
           {loginform()}
         </div>
       ) : (

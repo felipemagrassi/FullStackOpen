@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Notification = ({ error }) => {
+const Notification = ( { error }) => {
   return (
     <div className='error'>
       <p>{error}</p>

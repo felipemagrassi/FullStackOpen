@@ -51,7 +51,7 @@ describe('<Blog />', () => {
 
   test('like button and event handler receive the same amount of props', () => {
 
-    const button = component.getByText('like')
+    const button = component.getByText('Like Post')
     fireEvent.click(button)
     fireEvent.click(button)
 

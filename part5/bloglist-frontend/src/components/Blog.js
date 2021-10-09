@@ -15,15 +15,11 @@ const Blog = ({ blog, handleIncreaseLike, handleDeletePost }) => {
   const showWhenVisible = { display: visible ? '' : 'none' }
 
   const updateLike = () => {
-    handleIncreaseLike(blog.id, { title: blog.title, likes: blog.likes + 1 })
+    handleIncreaseLike(blog.id, { title: blog.title, likes: blog.likes })
   }
 
   const deletePost = () => {
-    if (
-      window.confirm(
-        `are you sure you want to remove ${blog.title} by ${blog.author}`
-      )
-    )
+    if (window.confirm(`are you sure you want to remove ${blog.title} by ${blog.author}`))
       handleDeletePost(blog.id, blog.title)
   }
 
