@@ -16,6 +16,12 @@ const blogSchema = new mongoose.Schema({
     required: true,
     minlength: 5,
   },
+  comments: [
+    {
+      type: String,
+      minLength: 5,
+    },
+  ],
   likes: {
     type: Number,
     minlength: 5,

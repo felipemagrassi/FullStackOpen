@@ -1,12 +1,17 @@
 import blogService from '../services/blogs'
 
 const blogReducer = (state = [], action) => {
-
   switch(action.type) {
   case 'INIT_BLOGS':
     return action.payload
   case 'CREATE_BLOG':
     return [...state, action.payload]
+  case 'COMMENT_BLOG': {
+    const commented = state.find(blog => blog.id === action.payload.id)
+    commented.comments = action.payload.comments
+    const items = state.filter(blog => blog.id !== action.payload.id)
+    return [...items, action.payload]
+  }
   case 'DELETE_BLOG':
     return state.filter((blog) => blog.id !== action.payload)
   case 'LIKE_BLOG':{
@@ -36,8 +41,16 @@ export const createBlog = (blogObject) => {
     dispatch({
       type: 'CREATE_BLOG',
       payload: createdBlog
-    }
-    )
+    })
+  }}
+
+export const commentBlog = (id, comment) => {
+  return async dispatch => {
+    const commentedBlog = await blogService.comment(id, comment)
+    dispatch({
+      type: 'COMMENT_BLOG',
+      payload: commentedBlog
+    })
   }
 }
 

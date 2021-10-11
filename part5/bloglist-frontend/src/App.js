@@ -1,98 +1,65 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
+import { Switch, Route, Link, useRouteMatch } from 'react-router-dom'
 
+import { Button, Container, Breadcrumbs, Typography } from '@material-ui/core'
+
+import Blogs from './components/Blogs'
 import Blog from './components/Blog'
 import LoginForm from './components/LoginForm'
-import BlogForm from './components/BlogForm'
+
 import Togglable from './components/Togglable'
 import Notification from './components/Notification'
-import blogService from './services/blogs'
-import loginService from './services/login'
+import Users from './components/Users'
+import User from './components/User'
+
 import { showNotification } from './reducers/notificationReducer'
-import { initBlog, createBlog, likeBlog, deleteBlog } from './reducers/blogReducer'
+import { initBlog } from './reducers/blogReducer'
+import { getUsers } from './reducers/creatorsReducer'
+import { userAlreadyLogged, userLoggout, userLogin } from './reducers/userReducer'
 
 
 const App = () => {
 
   const dispatch = useDispatch()
-  const blogFormRef = useRef()
-  const [user, setUser] = useState(null)
+  const user = useSelector(({ user }) => user)
+  const creators = useSelector(({ creators }) => creators)
   const blogs = useSelector(({ blog }) => blog)
-  const errorMessage = useSelector(({ notification }) => notification.message)
+  const notification = useSelector(({ notification }) => notification)
+
+  const matchUser = useRouteMatch('/users/:id')
+  const selectedUser = matchUser ? creators.find(user => user.id === matchUser.params.id) : null
+  const matchBlog = useRouteMatch('/:id')
+  const selectedBlog = matchBlog ? blogs.find(blog => blog.id === matchBlog.params.id) : null
 
   useEffect(() => {
     dispatch(initBlog())
+    dispatch(getUsers())
   }, [])
 
   useEffect(() => {
     const loggedUser = window.localStorage.getItem('loggedUser')
-    const authentication = JSON.parse(
-      window.localStorage.getItem('authentication')
-    )
+    const authentication = JSON.parse(window.localStorage.getItem('authentication'))
+
     if (loggedUser && authentication.end >= Date.now()) {
       const user = JSON.parse(loggedUser)
-      setUser(user)
-      blogService.setToken(user.token)
+      dispatch(userAlreadyLogged(user))
+    } else {
+      window.localStorage.clear()
     }
-  }, [])
 
-  const handleLogout = () => {
-    window.localStorage.clear()
-    blogService.setToken(null)
-    setUser(null)
-  }
+  }, [])
 
   const handleLogin = async ({ username, password }) => {
     try {
-      const user = await loginService.login({ username, password })
-      const authentication = {
-        start: Date.now(),
-        end: Date.now() + 60 * 60 * 1000,
-      }
-      setUser(user)
-      blogService.setToken(user.token)
-      window.localStorage.setItem('loggedUser', JSON.stringify(user))
-      window.localStorage.setItem(
-        'authentication',
-        JSON.stringify(authentication)
-      )
+      await dispatch(userLogin({ username ,password }))
     } catch (err) {
-      dispatch(showNotification('Wrong Credentials'))
+      dispatch(showNotification('Wrong Credentials', 'error'))
     }
   }
 
-  const handleCreateBlog = async ({ title, author, url }) => {
-    blogFormRef.current.toggleVisibility()
-    try {
-      const blog = {
-        title,
-        author,
-        url
-      }
-      dispatch(createBlog(blog))
-      dispatch(showNotification(`${blog.title} created with success`))
-
-    } catch (err) {
-      dispatch(showNotification('Invalid parameters for creating a blog'))
-    }
-  }
-
-  const handleIncreaseLike = async (id, blogObj) => {
-    try {
-      dispatch(likeBlog(id))
-      dispatch(showNotification(`${blogObj.title} likes updated to ${blogObj.likes + 1}`))
-    } catch (err) {
-      dispatch(showNotification('Can\'t update this post'))
-    }
-  }
-
-  const handleDeletePost = async (id, blogTitle) => {
-    try {
-      dispatch(deleteBlog(id))
-      dispatch(showNotification(`${blogTitle} deleted by ${user.name}`))
-    } catch (err) {
-      dispatch(showNotification('You can\'t delete this post'))
-    }
+  const handleLogout = () => {
+    dispatch(userLoggout())
   }
 
   const loginform = () => (
@@ -101,42 +68,41 @@ const App = () => {
     </Togglable>
   )
 
-  const blogform = () => (
-    <Togglable buttonLabel="Add new blog" ref={blogFormRef}>
-      <BlogForm handleCreateBlog={handleCreateBlog} />
-    </Togglable>
-  )
-
-
   return (
-    <div>
-      <h2>blogs</h2>
-      <Notification error={errorMessage}/>
-
+    <Container>
       {user === null ? (
         <div>
-          <h2>Log in to application</h2>
-          {loginform()}
+          <Breadcrumbs sx={{ display: 'flex', justifyContent: 'center' }} aria-label="breadcrumbs">
+            <Link to='/'>Blogs </Link>
+            <Link to='/users'>Users </Link>
+          </Breadcrumbs>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column' }}>
+            <Typography sx={{ mb: 1, mt: 1 }} variant='h4' component='h1' >Log in to application</Typography>
+            {loginform()}
+          </div>
         </div>
       ) : (
         <div>
-          {user.name} logged in
-          <button onClick={handleLogout}>logout</button>
-          {blogform()}
+          <Breadcrumbs sx={{ display: 'flex', justifyContent: 'center' }} aria-label="breadcrumbs">
+            <Link to='/'>Blogs </Link>
+            <Link to='/users'>Users </Link>
+            <div>
+              {user.name} logged in
+              <Button onClick={handleLogout}>logout</Button>
+            </div>
+          </Breadcrumbs>
+
         </div>
       )}
+      <Notification error={notification.message} type={notification.type} />
 
-      {blogs
-        .sort((a, b) => (a.likes > b.likes ? -1 : 1))
-        .map((blog) => (
-          <Blog
-            key={blog.id}
-            blog={blog}
-            handleIncreaseLike={handleIncreaseLike}
-            handleDeletePost={handleDeletePost}
-          />
-        ))}
-    </div>
+      <Switch>
+        <Route path="/users/:id"> <User user={selectedUser}/> </Route>
+        <Route path="/users"> <Users creators={creators}/> </Route>
+        <Route path="/:id"> <Blog blog={selectedBlog}/> </Route>
+        <Route path="/"> <Blogs blogs={blogs}/> </Route>
+      </Switch>
+    </Container>
   )
 }
 

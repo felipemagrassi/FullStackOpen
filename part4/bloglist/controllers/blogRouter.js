@@ -52,15 +52,32 @@ blogRouter.post(
   }
 );
 
+blogRouter.put('/:id/comments', async (request, response) => {
+  const { body } = request;
+  const comment = body.comment;
+  const blog = await Blog.findById(request.params.id);
+
+  const savedPost = await Blog.findByIdAndUpdate(
+    request.params.id,
+    { comments: [...blog.comments, comment] },
+    {
+      runValidators: true,
+      new: true,
+    }
+  );
+
+  response.json(savedPost);
+});
+
 blogRouter.put(
-  '/:id',
+  '/:id/like',
   tokenExtractor,
   userExtractor,
   async (request, response) => {
     const blog = await Blog.findById(request.params.id);
     const savedPost = await Blog.findByIdAndUpdate(
       request.params.id,
-      { ...blog, likes: blog.likes++ },
+      { likes: blog.likes++ },
       {
         runValidators: true,
         new: true,
