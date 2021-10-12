@@ -19,7 +19,9 @@ const LoginForm = ({ handleLogin }) => {
         <TextField
           id="username"
           label="username"
+          variant='standard'
           required
+          inputProps={{ minlength: 3 }}
           value={username}
           onChange={({ target }) => setUsername(target.value)}
         />
@@ -28,8 +30,10 @@ const LoginForm = ({ handleLogin }) => {
         <TextField
           id="password"
           required
+          variant='standard'
           label="password"
           value={password}
+          inputProps={{ minlength: 5 }}
           onChange={({ target }) => setPassword(target.value)}
         />
       </div>

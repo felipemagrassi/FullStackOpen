@@ -12,7 +12,6 @@ const Blog = ({ blog }) => {
   const dispatch = useDispatch()
   const user = JSON.parse(window.localStorage.getItem('loggedUser'))
 
-
   if(!blog)
     return null
 

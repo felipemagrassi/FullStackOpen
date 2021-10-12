@@ -21,29 +21,29 @@ const BlogForm = ({ handleCreateBlog }) => {
     <div>
       <form onSubmit={handleBlogSubmit}>
         <div>
-          Title:
           <TextField
             id='title'
             value={title}
-            label="title"
+            inputProps={{ minlength: 5 }}
+            label="Title"
             onChange={({ target }) => setTitle(target.value)}
           />
         </div>
         <div>
-          Author:
           <TextField
             id='author'
-            label="author"
+            label="Author"
             value={author}
+            inputProps={{ minlength: 5 }}
             onChange={({ target }) => setAuthor(target.value)}
           />
         </div>
         <div>
-          Url:
           <TextField
             id='url'
-            label="url"
+            label="Url"
             value={url}
+            inputProps={{ minlength: 5 }}
             onChange={({ target }) => setUrl(target.value)}
           />
         </div>

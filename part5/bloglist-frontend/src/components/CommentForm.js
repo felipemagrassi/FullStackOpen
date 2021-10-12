@@ -18,6 +18,7 @@ const CommentForm = ({ id, handleComment }) => {
             type="text"
             id='comment'
             value={comment}
+            inputProps={{ minlength: 5 }}
             name="comment"
             onChange={({ target }) => setComment(target.value)}
           />
