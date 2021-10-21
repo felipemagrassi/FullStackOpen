@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
-import { useMutation } from '@apollo/client';
-import { CREATE_BOOK } from '../utils/mutations';
-import { FIND_AUTHORS, FIND_BOOKS } from '../utils/queries';
+import React, { useState } from "react";
+import { useMutation } from "@apollo/client";
+import { CREATE_BOOK } from "../utils/mutations";
+import { FIND_AUTHORS, FIND_BOOKS } from "../utils/queries";
 
 const NewBook = (props) => {
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
-  const [published, setPublished] = useState('');
-  const [genre, setGenre] = useState('');
+  const [title, setTitle] = useState("");
+  const [author, setAuthor] = useState("");
+  const [published, setPublished] = useState("");
+  const [genre, setGenre] = useState("");
   const [genres, setGenres] = useState([]);
   const [addBook] = useMutation(CREATE_BOOK, {
-    refetchQueries: [{ query: FIND_BOOKS }, { query: FIND_AUTHORS }],
+    refetchQueries: { query: FIND_AUTHORS },
+    update: (store, response) => {
+      const dataInStore = store.readQuery({ query: FIND_BOOKS });
+      store.writeQuery({
+        query: FIND_BOOKS,
+        data: {
+          ...dataInStore,
+          allBooks: [...dataInStore.allBooks, response.data.addBook],
+        },
+      });
+    },
   });
 
   if (!props.show) {
@@ -23,16 +33,16 @@ const NewBook = (props) => {
       variables: { title, author, published: Number(published), genres },
     });
 
-    setTitle('');
-    setPublished('');
-    setAuthor('');
+    setTitle("");
+    setPublished("");
+    setAuthor("");
     setGenres([]);
-    setGenre('');
+    setGenre("");
   };
 
   const addGenre = () => {
     setGenres(genres.concat(genre));
-    setGenre('');
+    setGenre("");
   };
 
   return (
@@ -55,7 +65,7 @@ const NewBook = (props) => {
         <div>
           published
           <input
-            type='number'
+            type="number"
             value={published}
             onChange={({ target }) => setPublished(target.value)}
           />
@@ -65,12 +75,12 @@ const NewBook = (props) => {
             value={genre}
             onChange={({ target }) => setGenre(target.value)}
           />
-          <button onClick={addGenre} type='button'>
+          <button onClick={addGenre} type="button">
             add genre
           </button>
         </div>
-        <div>genres: {genres.join(' ')}</div>
-        <button type='submit'>create book</button>
+        <div>genres: {genres.join(" ")}</div>
+        <button type="submit">create book</button>
       </form>
     </div>
   );
