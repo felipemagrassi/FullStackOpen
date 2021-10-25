@@ -3,19 +3,21 @@ const {
   UserInputError,
   AuthenticationError,
   gql,
-} = require("apollo-server");
-const bcrypt = require("bcrypt");
-const jwt = require("jsonwebtoken");
-const mongoose = require("mongoose");
-const Book = require("./models/book");
-const Author = require("./models/author");
-const User = require("./models/user");
-require("dotenv").config();
+} = require('apollo-server');
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const Book = require('./models/book');
+const Author = require('./models/author');
+const User = require('./models/user');
+const { PubSub } = require('graphql-subscriptions');
+const pubsub = new PubSub();
+require('dotenv').config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
 mongoose
   .connect(MONGODB_URI)
-  .then(() => console.log("connected to MongoDB"))
+  .then(() => console.log('connected to MongoDB'))
   .catch((error) =>
     console.log(`Error connecting to MongoDB: ${error.message}`)
   );
@@ -33,7 +35,7 @@ const typeDefs = gql`
     name: String!
     born: Int
     bookCount: Int!
-    id: ID!
+    _id: ID!
   }
 
   type Book {
@@ -41,17 +43,21 @@ const typeDefs = gql`
     author: Author!
     published: Int!
     genres: [String!]!
-    id: ID!
+    _id: ID!
   }
 
   type User {
     username: String!
     favoriteGenre: String!
-    id: ID!
+    _id: ID!
   }
 
   type Token {
     value: String!
+  }
+
+  type Subscription {
+    bookAdded: Book!
   }
 
   type Mutation {
@@ -84,20 +90,20 @@ const resolvers = {
         return await Book.find({
           author: author._id,
           genres: args.genre,
-        }).populate("author", { name: 1, born: 1 });
+        }).populate('author', { name: 1, born: 1 });
       } else if (args.author) {
         const author = await Author.findOne({ name: args.author });
-        return await Book.find({ author: author._id }).populate("author", {
+        return await Book.find({ author: author._id }).populate('author', {
           name: 1,
           born: 1,
         });
       } else if (args.genre) {
-        return await Book.find({ genres: args.genre }).populate("author", {
+        return await Book.find({ genres: args.genre }).populate('author', {
           name: 1,
           born: 1,
         });
       } else {
-        return await Book.find({}).populate("author", { name: 1, born: 1 });
+        return await Book.find({}).populate('author', { name: 1, born: 1 });
       }
     },
     allAuthors: async (root, args) => {
@@ -109,12 +115,14 @@ const resolvers = {
   Mutation: {
     addBook: async (root, args, { loggedUser }) => {
       if (!loggedUser) {
-        throw new AuthenticationError("you need to be logged in to add a book");
+        throw new AuthenticationError('you need to be logged in to add a book');
       }
+
       const author = await Author.findOne({ name: args.author });
       const book = await Book.findOne({ title: args.title });
+
       if (book) {
-        throw new UserInputError("book already exists", { invalidArgs: args });
+        throw new UserInputError('book already exists', { invalidArgs: args });
       }
 
       if (!author) {
@@ -123,30 +131,43 @@ const resolvers = {
 
         try {
           await author.save();
-          await book.save();
+          const savedBook = await book.save();
+          const returnedBook = savedBook.populate('author', {
+            name: 1,
+            born: 1,
+          });
+          pubsub.publish('BOOK_ADDED', {
+            bookAdded: returnedBook,
+          });
+          return returnedBook;
         } catch (error) {
           throw new UserInputError(error.message, { invalidArgs: args });
         }
-
-        return book.populate("author", { name: 1, born: 1 });
       } else {
         const book = new Book({ ...args, author: author.id });
         try {
-          await book.save();
+          const savedBook = await book.save();
+          const returnedBook = savedBook.populate('author', {
+            name: 1,
+            born: 1,
+          });
+          pubsub.publish('BOOK_ADDED', {
+            bookAdded: returnedBook,
+          });
+          return returnedBook;
         } catch (error) {
           throw new UserInputError(error.message, { invalidArgs: args });
         }
-        return book.populate("author", { name: 1, born: 1 });
       }
     },
 
     editAuthor: async (root, args, { loggedUser }) => {
       if (!loggedUser) {
-        throw new AuthenticationError("you need to be logged in to add a book");
+        throw new AuthenticationError('you need to be logged in to add a book');
       }
       const author = await Author.findOne({ name: args.name });
       if (!author) {
-        throw new UserInputError("author not found", { invalidArgs: args });
+        throw new UserInputError('author not found', { invalidArgs: args });
       }
       author.born = args.setBornTo;
       try {
@@ -177,7 +198,7 @@ const resolvers = {
       const checkPassword = await bcrypt.compare(password, user.passwordHash);
 
       if (!(user && checkPassword)) {
-        throw new UserInputError("invalid username or password", {
+        throw new UserInputError('invalid username or password', {
           invalidArgs: args,
         });
       }
@@ -189,7 +210,11 @@ const resolvers = {
       return { value: token };
     },
   },
-
+  Subscription: {
+    bookAdded: {
+      subscribe: () => pubsub.asyncIterator(['BOOK_ADDED']),
+    },
+  },
   Author: {
     bookCount: async ({ name }) => {
       const author = await Author.findOne({ name });
@@ -198,17 +223,12 @@ const resolvers = {
   },
 };
 
-const deleteAuthor = async () => {
-  await Book.deleteMany({ author: null });
-};
-
-deleteAuthor();
 const server = new ApolloServer({
   typeDefs,
   resolvers,
   context: async ({ req }) => {
     const auth = req ? req.headers.authorization : null;
-    if (auth && auth.toLowerCase().startsWith("bearer ")) {
+    if (auth && auth.toLowerCase().startsWith('bearer ')) {
       const decodedToken = jwt.verify(auth.substring(7), process.env.SECRET);
       const loggedUser = await User.findById(decodedToken.id);
 
@@ -217,6 +237,7 @@ const server = new ApolloServer({
   },
 });
 
-server.listen().then(({ url }) => {
+server.listen().then(({ url, subscriptionsUrl }) => {
   console.log(`Server ready at ${url}`);
+  console.log(`Subscribtions ready at ${subscriptionsUrl}`);
 });

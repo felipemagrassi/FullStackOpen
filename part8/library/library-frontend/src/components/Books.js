@@ -1,10 +1,9 @@
-import React, { useState } from "react";
-import { useQuery } from "@apollo/client";
-import { FIND_BOOKS } from "../utils/queries";
-
+import React, { useState } from 'react';
+import { useQuery } from '@apollo/client';
+import { FIND_BOOKS } from '../utils/queries';
 const Books = (props) => {
   const { loading, error, data } = useQuery(FIND_BOOKS);
-  const [filter, setFilter] = useState("");
+  const [filter, setFilter] = useState('');
   const uniqueGenres = data
     ? [
         ...new Set(
@@ -17,6 +16,7 @@ const Books = (props) => {
   if (!props.show) {
     return null;
   }
+
   if (loading) return <p> Loading </p>;
   if (error) return `Error: ${error}`;
 
@@ -32,9 +32,9 @@ const Books = (props) => {
             <th>published</th>
           </tr>
           {data.allBooks
-            .filter((b) => (filter === "" ? b : b.genres.includes(filter)))
+            .filter((b) => (filter === '' ? b : b.genres.includes(filter)))
             .map((a) => (
-              <tr key={a.id}>
+              <tr key={a._id}>
                 <td>{a.title}</td>
                 <td>{a.author.name}</td>
                 <td>{a.published}</td>
@@ -48,7 +48,7 @@ const Books = (props) => {
             {a}
           </button>
         ))}
-        <button onClick={() => setFilter("")}> all genres </button>
+        <button onClick={() => setFilter('')}> all genres </button>
       </div>
     </div>
   );

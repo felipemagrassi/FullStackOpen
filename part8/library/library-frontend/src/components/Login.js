@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { useMutation } from "@apollo/client";
-import { LOGIN } from "../utils/mutations";
+import React, { useEffect, useState } from 'react';
+import { useMutation } from '@apollo/client';
+import { LOGIN } from '../utils/mutations';
 
 const Login = ({ show, setToken, setPage }) => {
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [login, { data }] = useMutation(LOGIN, {
     onError: (error) => console.error(error),
   });
@@ -12,10 +12,10 @@ const Login = ({ show, setToken, setPage }) => {
   useEffect(() => {
     if (data) {
       const token = data.login.value;
-      localStorage.setItem("user-token", token);
+      localStorage.setItem('user-token', token);
       setToken(token);
-      setUsername("");
-      setPassword("");
+      setUsername('');
+      setPassword('');
     }
   }, [data, setToken]);
 
@@ -28,7 +28,7 @@ const Login = ({ show, setToken, setPage }) => {
     login({
       variables: { username, password },
     });
-    setPage("authors");
+    setPage('authors');
   };
 
   return (
@@ -45,11 +45,11 @@ const Login = ({ show, setToken, setPage }) => {
           password
           <input
             value={password}
-            type="password"
+            type='password'
             onChange={({ target }) => setPassword(target.value)}
           />
         </div>
-        <button type="submit">login</button>
+        <button type='submit'>login</button>
       </form>
     </div>
   );

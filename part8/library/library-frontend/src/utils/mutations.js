@@ -1,4 +1,27 @@
-import { gql } from "@apollo/client";
+import { gql } from '@apollo/client';
+
+export const BOOK_DETAILS = gql`
+  fragment BookDetails on Book {
+    title
+    author {
+      name
+      born
+      _id
+    }
+    published
+    genres
+    _id
+  }
+`;
+
+export const BOOK_ADDED = gql`
+  subscription {
+    bookAdded {
+      ...BookDetails
+    }
+  }
+  ${BOOK_DETAILS}
+`;
 
 export const CREATE_BOOK = gql`
   mutation addBook(
@@ -19,7 +42,7 @@ export const CREATE_BOOK = gql`
       }
       published
       genres
-      id
+      _id
     }
   }
 `;
@@ -29,8 +52,7 @@ export const CHANGE_BIRTHDATE = gql`
     editAuthor(name: $name, setBornTo: $setBornTo) {
       name
       born
-      bookCount
-      id
+      _id
     }
   }
 `;
