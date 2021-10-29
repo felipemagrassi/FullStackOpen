@@ -2,25 +2,11 @@ interface BMI {
   height: number;
   weight: number;
 }
-const parseArguments = (args: Array<string>): BMI => {
-  if (args.length !== 4) {
-    throw new Error("invalid number of arguments");
-  }
 
-  if (!isNaN(Number(args[2])) && !isNaN(Number(args[3]))) {
-    return {
-      height: Number(args[2]),
-      weight: Number(args[3]),
-    };
-  } else {
-    throw new Error("Provided values were not numbers");
-  }
-};
-
-const calculateBMI = (dataObj: BMI): string => {
+export default function calculateBMI(dataObj: BMI): string {
   const { height, weight } = dataObj;
   if (isNaN(height) || isNaN(weight)) {
-    throw new Error("Provided valueus were not numbers");
+    throw new Error("Provided values were not numbers");
   }
   const heightInM = height / 100;
   const bmi = Math.floor(weight / (heightInM * heightInM));
@@ -33,6 +19,4 @@ const calculateBMI = (dataObj: BMI): string => {
   else if (bmi >= 30 && bmi <= 34.9) return "Obese (Class 1)";
   else if (bmi >= 35 && bmi <= 39.9) return "Obese (Class 2)";
   else return "Obese (Class 3)";
-};
-
-console.log(calculateBMI(parseArguments(process.argv)));
+}
